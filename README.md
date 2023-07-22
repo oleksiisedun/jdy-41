@@ -6,6 +6,9 @@
 
 [![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://vshymanskyy.github.io/StandWithUkraine/)
 
+## Why?
+Configuration of <a href="./docs/jdy-41-manual.pdf">JDY-41</a> may be pretty challenging and requires special software for accessing the serial port. The purpose of this tool is to simplify and speed up the configuration process.
+
 ## Installation
 1. Clone or download the repository
 2. Install dependencies via `npm i`
