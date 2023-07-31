@@ -27,6 +27,10 @@ Configuration of <a href="./docs/jdy-41-manual.pdf">JDY-41</a> may be pretty cha
 - Resending the instruction if no response is received
 - No need to provide instruction's head and terminator
 
+## Notes
+- After setting parameters module should be rebooted. Otherwise it will return old values when reading parameters.
+- Module ignores first instruction after power on. This bug is handled by tool.
+
 ## Usage
 ```
 npm start configure-parameters 04 00 09 A0 66 77 88 55 01 00
