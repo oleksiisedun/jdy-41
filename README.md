@@ -10,8 +10,8 @@
 Configuration of <a href="./docs/jdy-41-manual.pdf">JDY-41</a> may be pretty challenging and requires special software for accessing the serial port. The purpose of this tool is to simplify and speed up the configuration process.
 
 ## Installation
-1. Clone or download the repository
-2. Install dependencies via `npm i`
+1. Clone or download the repository.
+2. Install dependencies via `npm i`.
 
 ## Instructions
 - `reset` 
@@ -23,9 +23,9 @@ Configuration of <a href="./docs/jdy-41-manual.pdf">JDY-41</a> may be pretty cha
 - `send-address-message`
 
 ## Features
-- Automatic serial port detection
-- Resending the instruction if no response is received
-- No need to provide instruction's head and terminator
+- Automatic USB serial port detection.
+- Resending the instruction if no response is received.
+- No need to provide instruction's head and terminator.
 
 ## Notes
 - After setting parameters module should be rebooted. Otherwise it will return old values when reading parameters.
