@@ -1,7 +1,8 @@
 import port from './port.mjs';
 
 const terminator = '0D 0A';
-const headsOfInstructions = {
+const plus = '2B';
+const heads = {
   'reset': 'AB E3',
   'read-device-id': 'F2 AD',
   'read-version-number': 'AB CD',
@@ -10,14 +11,14 @@ const headsOfInstructions = {
   'configure-device-id': 'F1 AE',
   'send-address-message': 'B1 CA'
 };
-const instructions = Object.keys(headsOfInstructions);
 
+const instructions = Object.keys(heads);
 const [instruction, ...params] = process.argv.slice(2);
 const response = [];
 
 const getBuffer = instruction => Buffer.from(instruction.split(' ').map(n => parseInt(n, 16)));
 
-const responseToString = (response, head = '2B') => response[0] === head ?
+const responseToString = response => response[0] === plus ?
   response.slice(0, -2).map(hex => String.fromCharCode(parseInt(hex, 16))).join('') :
   response.join(' ');
 
@@ -26,7 +27,7 @@ const getInstruction = (head, params) => params.length ?
   `${head} ${terminator}`;
 
 const writeInstruction = (instruction, params) => {
-  port.write(getBuffer(getInstruction(headsOfInstructions[instruction], params)));
+  port.write(getBuffer(getInstruction(heads[instruction], params)));
   setTimeout(() => {
     if (!response.length) writeInstruction(instruction, params);
   }, 100);
@@ -40,10 +41,7 @@ port.on('data', data => {
   }
 });
 
-if (instructions.includes(instruction)) {
-  port.open();
-  writeInstruction(instruction, params);
-} else {
-  console.log('An invalid instruction was provided');
-  console.log(`Valid instructions: ${instructions.join(', ')}`);
-};
+if (!instructions.includes(instruction)) throw new Error(`Instruction not found: ${instructions.join(' ')}`);
+
+port.open();
+writeInstruction(instruction, params);
