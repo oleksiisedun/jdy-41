@@ -29,7 +29,8 @@ Configuration of <a href="./docs/jdy-41-manual.pdf">JDY-41</a> may be pretty cha
 
 ## Notes
 - After setting parameters module should be rebooted. Otherwise it will return old values when reading parameters.
-- Module ignores first instruction after power on. This bug is handled by tool.
+- Module ignores first instruction after power on. This bug is handled by the tool.
+- You can set custom baud rate and port path regex in the beginning of `port.mjs` file.
 
 ## Usage
 ```
