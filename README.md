@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/jdy-41.png" width="150px"/>
+  <img src="./assets/jdy-41.png" width="150px"/>
 </p>
 <h1 align="center">JDY-41</h1>
 <h2 align="center">Minimalistic CLI tool for module configuration</h2>
