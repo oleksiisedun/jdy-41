@@ -1,4 +1,5 @@
-import port from './port.mjs';
+import { parseArgs } from 'node:util';
+import { resolveConfigureParams, configureHelpText } from './friendly-params.js';
 
 const terminator = '0D 0A';
 const plus = '2B';
@@ -15,8 +16,52 @@ const heads = {
   'send-address-message': 'B1 CA'
 };
 
+/**
+ * Validates that every CLI param is a two-digit hex byte, throwing otherwise.
+ * @param {string[]} params
+ * @returns {void}
+ */
+const validateParams = params => {
+  const invalid = params.filter(param => !hexByteRegex.test(param));
+  if (invalid.length) throw new Error(`Invalid hex byte(s): ${invalid.join(' ')}`);
+};
+
 const instructions = Object.keys(heads);
-const [instruction, ...params] = process.argv.slice(2);
+const [rawInstruction, ...rawArgs] = process.argv.slice(2);
+let instruction = rawInstruction;
+let params = rawArgs;
+
+if (instruction === 'configure') {
+  const { values } = parseArgs({
+    args: rawArgs,
+    options: {
+      baud: { type: 'string' },
+      channel: { type: 'string' },
+      power: { type: 'string' },
+      mode: { type: 'string' },
+      id: { type: 'string' },
+      response: { type: 'string' },
+      help: { type: 'boolean' }
+    }
+  });
+  if (values.help) {
+    console.log(configureHelpText());
+    process.exit(0);
+  }
+  try {
+    params = resolveConfigureParams(values);
+  } catch (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
+  instruction = 'configure-parameters';
+}
+
+if (!instructions.includes(instruction)) throw new Error(`Instruction not found: ${instructions.join(' ')}`);
+validateParams(params);
+
+const { default: port } = await import('./port.mjs');
+
 const response = [];
 let settled = false;
 let responseTimeoutId;
@@ -86,16 +131,6 @@ const writeInstruction = (instruction, params, attempt = 1) => {
   }, 100);
 };
 
-/**
- * Validates that every CLI param is a two-digit hex byte, throwing otherwise.
- * @param {string[]} params
- * @returns {void}
- */
-const validateParams = params => {
-  const invalid = params.filter(param => !hexByteRegex.test(param));
-  if (invalid.length) throw new Error(`Invalid hex byte(s): ${invalid.join(' ')}`);
-};
-
 port.on('error', error => finish(`Serial port error: ${error.message}`, 1));
 
 port.on('data', data => {
@@ -103,9 +138,6 @@ port.on('data', data => {
   for (let i = 0; i < hex.length; i += 2) response.push(hex.slice(i, i + 2));
   if (response.join(' ').endsWith(terminator)) finish(responseToString(response));
 });
-
-if (!instructions.includes(instruction)) throw new Error(`Instruction not found: ${instructions.join(' ')}`);
-validateParams(params);
 
 port.open();
 responseTimeoutId = setTimeout(() => {
