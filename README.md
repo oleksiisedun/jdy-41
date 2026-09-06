@@ -12,6 +12,19 @@ Configuration of <a href="./docs/jdy-41-manual.pdf">JDY-41</a> may be pretty cha
 ## Installation
 1. Clone or download the repository.
 2. Install dependencies via `npm i`.
+   Requires Node.js 16+ (the project uses native ESM and top-level `await`).
+
+## Architecture
+
+`port.mjs` auto-detects the USB-serial device and exports a single `SerialPort` instance. `index.js` builds the hex instruction buffer for the given CLI command, writes it, and resends automatically if no response arrives within 100ms (the module ignores the first instruction after power-on). Incoming response bytes are accumulated until the `0D 0A` terminator is seen, then decoded either as an ASCII string (if the response starts with `+`) or as raw hex.
+
+```mermaid
+graph TD
+  CLI["index.js\n(CLI + protocol)"] -->|open/write| Port["port.mjs\n(auto-detect + SerialPort)"]
+  Port --> Device[("JDY-41 module")]
+  Device -->|data events| CLI
+  CLI -->|no response in 100ms| CLI
+```
 
 ## Instructions
 - `reset` 
