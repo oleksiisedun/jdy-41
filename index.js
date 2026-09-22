@@ -52,7 +52,6 @@ const { default: port } = await import('./port.mjs');
 
 const response = [];
 let settled = false;
-let responseTimeoutId;
 
 /**
  * Ends the CLI run exactly once: clears the response deadline, prints the
@@ -101,7 +100,7 @@ port.on('data', data => {
 });
 
 port.open();
-responseTimeoutId = setTimeout(() => {
+const responseTimeoutId = setTimeout(() => {
   finish(`No complete response after ${responseTimeoutMs}ms. Check the device connection.`, 1);
 }, responseTimeoutMs);
 writeInstruction(instruction, params);
