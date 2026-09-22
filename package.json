@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node index.js",
     "test": "node --test \"tests/**/*.test.js\"",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json"
   },
   "author": "Oleksii Sedun",
   "license": "ISC",
@@ -19,7 +20,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.2",
     "eslint": "^10.11.0",
-    "globals": "^17.12.0"
+    "globals": "^17.12.0",
+    "typescript": "^7.0.2"
   }
 }
