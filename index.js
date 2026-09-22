@@ -1,11 +1,9 @@
 import { parseArgs } from 'node:util';
 import { resolveConfigureParams, configureHelpText } from './friendly-params.js';
+import { terminator, validateParams, getBuffer, responseToString, getInstruction } from './protocol.js';
 
-const terminator = '0D 0A';
-const plus = '2B';
 const maxAttempts = 20;
 const responseTimeoutMs = 5000;
-const hexByteRegex = /^[0-9A-Fa-f]{2}$/;
 const heads = {
   'reset': 'AB E3',
   'read-device-id': 'F2 AD',
@@ -14,16 +12,6 @@ const heads = {
   'configure-parameters': 'A9 E1',
   'configure-device-id': 'F1 AE',
   'send-address-message': 'B1 CA'
-};
-
-/**
- * Validates that every CLI param is a two-digit hex byte, throwing otherwise.
- * @param {string[]} params
- * @returns {void}
- */
-const validateParams = params => {
-  const invalid = params.filter(param => !hexByteRegex.test(param));
-  if (invalid.length) throw new Error(`Invalid hex byte(s): ${invalid.join(' ')}`);
 };
 
 const instructions = Object.keys(heads);
@@ -65,33 +53,6 @@ const { default: port } = await import('./port.mjs');
 const response = [];
 let settled = false;
 let responseTimeoutId;
-
-/**
- * Converts a space-separated hex byte string into a Buffer.
- * @param {string} instructionString
- * @returns {Buffer}
- */
-const getBuffer = instructionString => Buffer.from(instructionString.split(' ').map(n => parseInt(n, 16)));
-
-/**
- * Decodes an accumulated response into a readable string, treating a
- * leading '+' byte as an ASCII payload and anything else as raw hex.
- * @param {string[]} response
- * @returns {string}
- */
-const responseToString = response => response[0] === plus ?
-  response.slice(0, -2).map(hex => String.fromCharCode(parseInt(hex, 16))).join('') :
-  response.join(' ');
-
-/**
- * Builds the full instruction string (head, optional params, terminator).
- * @param {string} head
- * @param {string[]} params
- * @returns {string}
- */
-const getInstruction = (head, params) => params.length ?
-  `${head} ${params.join(' ')} ${terminator}` :
-  `${head} ${terminator}`;
 
 /**
  * Ends the CLI run exactly once: clears the response deadline, prints the
