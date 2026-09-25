@@ -10,6 +10,6 @@
     "types": ["node"],
     "skipLibCheck": true
   },
-  "include": ["**/*.js", "**/*.mjs"],
+  "include": ["**/*.js"],
   "exclude": ["node_modules"]
 }

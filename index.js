@@ -48,7 +48,7 @@ if (instruction === 'configure') {
 if (!instructions.includes(instruction)) throw new Error(`Instruction not found: ${instructions.join(' ')}`);
 validateParams(params);
 
-const { default: port } = await import('./port.mjs');
+const { default: port } = await import('./port.js');
 
 const response = [];
 let settled = false;
