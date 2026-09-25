@@ -1,3 +1,5 @@
+import { toHexBytes } from './protocol.js';
+
 export const baudRates = {
   '1200': '01',
   '2400': '02',
@@ -32,7 +34,27 @@ export const modes = {
 };
 
 const wirelessIdRegex = /^[0-9A-Fa-f]{8}$/;
-const requiredFlags = ['baud', 'channel', 'power', 'mode', 'id', 'response'];
+
+/** Value hint shown in --help for each `configure` flag — the single list of flag names. */
+const flagHints = {
+  baud: `<${Object.keys(baudRates).join('|')}>`,
+  channel: '<0-127>',
+  power: `<${Object.keys(powerLevels).join('|')}>`,
+  mode: `<${Object.keys(modes).join('|')}>`,
+  id: '<8 hex digits, e.g. AABBCCDD>',
+  response: '<yes|no>'
+};
+
+/** @typedef {keyof typeof flagHints} ConfigureFlag */
+/** @typedef {Partial<Record<ConfigureFlag, string>>} ConfigureFlags */
+
+const requiredFlags = /** @type {ConfigureFlag[]} */ (Object.keys(flagHints));
+
+/** `node:util` parseArgs options for the `configure` command. */
+export const configureOptions = {
+  ...Object.fromEntries(requiredFlags.map(flag => [flag, { type: /** @type {const} */ ('string') }])),
+  help: { type: /** @type {const} */ ('boolean') }
+};
 
 /**
  * Looks up a friendly value in a map, throwing a descriptive error listing valid choices if absent.
@@ -50,7 +72,7 @@ const lookup = (label, map, value) => {
 /**
  * Converts friendly `configure` flags into the hex parameter bytes expected by the
  * configure-parameters instruction (baud, channel, power, mode, 4x wireless ID, response, backup).
- * @param {{ baud?: string, channel?: string, power?: string, mode?: string, id?: string, response?: string }} flags
+ * @param {ConfigureFlags} flags
  * @returns {string[]}
  */
 export function resolveConfigureParams(flags) {
@@ -67,7 +89,7 @@ export function resolveConfigureParams(flags) {
   const powerHex = lookup('power', powerLevels, power);
   const modeHex = lookup('mode', modes, mode);
   if (!wirelessIdRegex.test(id)) throw new Error(`Invalid wireless ID "${id}". Must be 8 hex digits, e.g. AABBCCDD.`);
-  const idBytes = id.toUpperCase().match(/../g);
+  const idBytes = toHexBytes(id);
   const responseValue = response?.toLowerCase();
   if (!['yes', 'no'].includes(responseValue)) throw new Error(`Invalid response "${response}". Must be "yes" or "no".`);
   const responseHex = responseValue === 'yes' ? '01' : '00';
@@ -83,12 +105,7 @@ export function configureHelpText() {
   return [
     'Usage: npm start configure [options]',
     '',
-    `  --baud <${Object.keys(baudRates).join('|')}>`,
-    '  --channel <0-127>',
-    `  --power <${Object.keys(powerLevels).join('|')}>`,
-    `  --mode <${Object.keys(modes).join('|')}>`,
-    '  --id <8 hex digits, e.g. AABBCCDD>',
-    '  --response <yes|no>',
+    ...requiredFlags.map(flag => `  --${flag} ${flagHints[flag]}`),
     '',
     'Example:',
     '  npm start configure --baud 9600 --channel 5 --power 0db \\',

@@ -15,9 +15,4 @@ async function getPortPath(regex = /tty.*usb/i) {
   return port.path;
 }
 
-const path = await getPortPath().catch(error => {
-  console.error(error.message);
-  process.exit(1);
-});
-
-export default new SerialPort({ baudRate, path, autoOpen: false });
+export default new SerialPort({ baudRate, path: await getPortPath(), autoOpen: false });

@@ -38,3 +38,25 @@ export const responseToString = response => response[0] === plus ?
 export const getInstruction = (head, params) => params.length ?
   `${head} ${params.join(' ')} ${terminator}` :
   `${head} ${terminator}`;
+
+/**
+ * Splits a hex string into uppercase two-digit byte strings, e.g. 'aabb' → ['AA', 'BB'].
+ * @param {string} hex
+ * @returns {string[]}
+ */
+export const toHexBytes = hex => hex.toUpperCase().match(/../g) ?? [];
+
+/**
+ * Appends a raw serial data chunk (of any size) to the accumulated response bytes.
+ * @param {string[]} response
+ * @param {Buffer} chunk
+ * @returns {string[]}
+ */
+export const appendChunk = (response, chunk) => [...response, ...toHexBytes(chunk.toString('hex'))];
+
+/**
+ * Reports whether the accumulated response ends with the terminator.
+ * @param {string[]} response
+ * @returns {boolean}
+ */
+export const isComplete = response => response.join(' ').endsWith(terminator);

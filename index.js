@@ -1,8 +1,9 @@
 import { parseArgs } from 'node:util';
-import { resolveConfigureParams, configureHelpText } from './friendly-params.js';
-import { terminator, validateParams, getBuffer, responseToString, getInstruction } from './protocol.js';
+import { resolveConfigureParams, configureHelpText, configureOptions } from './friendly-params.js';
+import { validateParams, getBuffer, responseToString, getInstruction, appendChunk, isComplete } from './protocol.js';
 
 const maxAttempts = 20;
+const retryDelayMs = 100;
 const responseTimeoutMs = 5000;
 const heads = {
   'reset': 'AB E3',
@@ -15,42 +16,48 @@ const heads = {
 };
 
 const instructions = Object.keys(heads);
-const [rawInstruction, ...rawArgs] = process.argv.slice(2);
-let instruction = rawInstruction;
-let params = rawArgs;
 
-if (instruction === 'configure') {
-  const { values } = parseArgs({
-    args: rawArgs,
-    options: {
-      baud: { type: 'string' },
-      channel: { type: 'string' },
-      power: { type: 'string' },
-      mode: { type: 'string' },
-      id: { type: 'string' },
-      response: { type: 'string' },
-      help: { type: 'boolean' }
-    }
-  });
-  if (values.help) {
-    console.log(configureHelpText());
-    process.exit(0);
-  }
-  try {
-    params = resolveConfigureParams(values);
-  } catch (error) {
-    console.error(error.message);
-    process.exit(1);
-  }
-  instruction = 'configure-parameters';
+/**
+ * Prints an expected (user or device) error without a stack trace and exits with code 1.
+ * @param {unknown} error
+ * @returns {never}
+ */
+function exitWithError(error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
 }
 
-if (!instructions.includes(instruction)) throw new Error(`Instruction not found: ${instructions.join(' ')}`);
-validateParams(params);
+/**
+ * Parses the CLI args into the instruction to send and its validated hex params,
+ * translating the friendly `configure` flags into `configure-parameters`. Throws on invalid input.
+ * @param {string[]} args
+ * @returns {{ instruction: string, params: string[] }}
+ */
+const parseCli = ([instruction, ...args]) => {
+  if (instruction === 'configure') {
+    const { values: { help, ...flags } } = parseArgs({ args, options: configureOptions });
+    if (help) {
+      console.log(configureHelpText());
+      process.exit(0);
+    }
+    return { instruction: 'configure-parameters', params: resolveConfigureParams(flags) };
+  }
+  if (!instructions.includes(instruction)) throw new Error(`Instruction not found: ${instructions.join(' ')}`);
+  validateParams(args);
+  return { instruction, params: args };
+};
 
-const { default: port } = await import('./port.js');
+let cli;
+try {
+  cli = parseCli(process.argv.slice(2));
+} catch (error) {
+  exitWithError(error);
+}
+const { instruction, params } = cli;
 
-const response = [];
+const port = await import('./port.js').then(module => module.default, exitWithError);
+
+let response = [];
 let settled = false;
 
 /**
@@ -72,7 +79,7 @@ const finish = (message, exitCode = 0) => {
 
 /**
  * Writes an instruction to the port, resending it (up to maxAttempts times)
- * if no response byte has arrived within 100ms. This works around the
+ * if no response byte has arrived within retryDelayMs. This works around the
  * module ignoring the first instruction it receives after power-on.
  * @param {string} instruction
  * @param {string[]} params
@@ -88,15 +95,14 @@ const writeInstruction = (instruction, params, attempt = 1) => {
       return;
     }
     writeInstruction(instruction, params, attempt + 1);
-  }, 100);
+  }, retryDelayMs);
 };
 
 port.on('error', error => finish(`Serial port error: ${error.message}`, 1));
 
 port.on('data', data => {
-  const hex = data.toString('hex').toUpperCase();
-  for (let i = 0; i < hex.length; i += 2) response.push(hex.slice(i, i + 2));
-  if (response.join(' ').endsWith(terminator)) finish(responseToString(response));
+  response = appendChunk(response, data);
+  if (isComplete(response)) finish(responseToString(response));
 });
 
 port.open();
