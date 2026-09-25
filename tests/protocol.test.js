@@ -7,7 +7,8 @@ import {
   getInstruction,
   toHexBytes,
   appendChunk,
-  isComplete
+  isComplete,
+  instructions
 } from '../protocol.js';
 
 describe('validateParams', () => {
@@ -76,5 +77,43 @@ describe('appendChunk + isComplete', () => {
 
   test('treats an empty response as incomplete', () => {
     assert.equal(isComplete([]), false);
+  });
+});
+
+/**
+ * Feeds a reply one byte per data event, like a slow serial link, and returns
+ * the response at the moment the data handler would consider it complete.
+ * @param {string} instruction
+ * @param {number[]} bytes
+ * @returns {string[]}
+ */
+const receiveBytewise = (instruction, bytes) => {
+  let response = /** @type {string[]} */ ([]);
+  for (const byte of bytes) {
+    response = appendChunk(response, Buffer.from([byte]));
+    if (isComplete(response, instructions[instruction].replyLength)) break;
+  }
+  return response;
+};
+
+describe('isComplete with a fixed reply length', () => {
+  test('does not stop at a 0D 0A inside a read-device-id reply', () => {
+    // Device ID 110D0A44
+    const reply = [0xf2, 0xad, 0x11, 0x0d, 0x0a, 0x44, 0x0d, 0x0a];
+    assert.equal(responseToString(receiveBytewise('read-device-id', reply)), 'F2 AD 11 0D 0A 44 0D 0A');
+  });
+
+  test('does not stop at a 0D 0A inside a read-parameters reply', () => {
+    // Wireless ID 660D0A55
+    const reply = [0xaa, 0xe2, 0x04, 0x00, 0x09, 0xa0, 0x66, 0x0d, 0x0a, 0x55, 0x00, 0x05, 0x0d, 0x0a];
+    assert.equal(
+      responseToString(receiveBytewise('read-parameters', reply)),
+      'AA E2 04 00 09 A0 66 0D 0A 55 00 05 0D 0A'
+    );
+  });
+
+  test('is incomplete until the expected length arrives', () => {
+    assert.equal(isComplete(['F2', 'AD', '0D', '0A'], 8), false);
+    assert.equal(isComplete(['F2', 'AD', '11', '22', '33', '44', '0D', '0A'], 8), true);
   });
 });

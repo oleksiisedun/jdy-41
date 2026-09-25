@@ -1,22 +1,19 @@
 import { parseArgs } from 'node:util';
 import { resolveConfigureParams, configureHelpText, configureOptions } from './friendly-params.js';
-import { validateParams, getBuffer, responseToString, getInstruction, appendChunk, isComplete } from './protocol.js';
+import {
+  instructions,
+  validateParams,
+  getBuffer,
+  responseToString,
+  getInstruction,
+  appendChunk,
+  isComplete
+} from './protocol.js';
 
 const maxAttempts = 20;
 const retryDelayMs = 100;
 const responseTimeoutMs = 5000;
-/** @type {Record<string, string>} */
-const heads = {
-  reset: 'AB E3',
-  'read-device-id': 'F2 AD',
-  'read-version-number': 'AB CD',
-  'read-parameters': 'AA E2',
-  'configure-parameters': 'A9 E1',
-  'configure-device-id': 'F1 AE',
-  'send-address-message': 'B1 CA'
-};
-
-const instructions = Object.keys(heads);
+const instructionNames = Object.keys(instructions);
 
 /**
  * Prints an expected (user or device) error without a stack trace and exits with code 1.
@@ -45,7 +42,7 @@ const parseCli = ([instruction, ...args]) => {
     }
     return { instruction: 'configure-parameters', params: resolveConfigureParams(flags) };
   }
-  if (!instructions.includes(instruction)) throw new Error(`Instruction not found: ${instructions.join(' ')}`);
+  if (!instructionNames.includes(instruction)) throw new Error(`Instruction not found: ${instructionNames.join(' ')}`);
   validateParams(args);
   return { instruction, params: args };
 };
@@ -92,7 +89,7 @@ const finish = (message, exitCode = 0) => {
  * @returns {void}
  */
 const writeInstruction = (instruction, params, attempt = 1) => {
-  port.write(getBuffer(getInstruction(heads[instruction], params)));
+  port.write(getBuffer(getInstruction(instructions[instruction].head, params)));
   setTimeout(() => {
     if (settled || response.length) return;
     if (attempt >= maxAttempts) {
@@ -107,7 +104,7 @@ port.on('error', (/** @type {Error} */ error) => finish(`Serial port error: ${er
 
 port.on('data', (/** @type {Buffer} */ data) => {
   response = appendChunk(response, data);
-  if (isComplete(response)) finish(responseToString(response));
+  if (isComplete(response, instructions[instruction].replyLength)) finish(responseToString(response));
 });
 
 port.open();
