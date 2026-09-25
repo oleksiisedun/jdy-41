@@ -7,9 +7,11 @@
 [![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://vshymanskyy.github.io/StandWithUkraine/)
 
 ## Why?
+
 Configuration of <a href="./docs/jdy-41-manual.pdf">JDY-41</a> may be pretty challenging and requires special software for accessing the serial port. The purpose of this tool is to simplify and speed up the configuration process.
 
 ## Installation
+
 1. Clone or download the repository.
 2. Install dependencies via `npm i`.
    Requires Node.js 20+ (the project uses native ESM, top-level `await`, and `node:util`'s `parseArgs`).
@@ -30,6 +32,7 @@ graph TD
 ```
 
 ## Instructions
+
 - `reset`
 - `read-device-id`
 - `read-version-number`
@@ -40,17 +43,20 @@ graph TD
 - `send-address-message` — 4-byte target device ID (`FF FF FF FF` broadcasts to all) followed by the data bytes, e.g. `11 11 22 22 55 66 77 88`
 
 ## Features
+
 - Automatic USB serial port detection.
 - Resending the instruction if no response is received.
 - No need to provide instruction's head and terminator.
 - `configure` command accepts human-readable values (baud rate, power in db, mode name, etc.) instead of raw hex bytes.
 
 ## Notes
+
 - After setting parameters module should be rebooted. Otherwise it will return old values when reading parameters.
 - Module ignores first instruction after power on. This bug is handled by the tool.
 - You can set custom baud rate and port path regex in the beginning of `port.js` file.
 
 ## Usage
+
 ```
 npm start read-parameters
 ```
@@ -68,6 +74,7 @@ npm start configure -- --baud 9600 --channel 5 --power 0db --mode transparent --
 Run `npm start configure -- --help` for the full list of accepted values for each flag.
 
 If you need a parameter combination the `configure` flags don't cover, fall back to `configure-parameters` with raw hex bytes as documented in the manual, e.g.:
+
 ```
 npm start configure-parameters 04 00 09 A0 66 77 88 55 01 00
 ```

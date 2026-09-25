@@ -7,7 +7,7 @@ const retryDelayMs = 100;
 const responseTimeoutMs = 5000;
 /** @type {Record<string, string>} */
 const heads = {
-  'reset': 'AB E3',
+  reset: 'AB E3',
   'read-device-id': 'F2 AD',
   'read-version-number': 'AB CD',
   'read-parameters': 'AA E2',
@@ -36,7 +36,9 @@ function exitWithError(error) {
  */
 const parseCli = ([instruction, ...args]) => {
   if (instruction === 'configure') {
-    const { values: { help, ...flags } } = parseArgs({ args, options: configureOptions });
+    const {
+      values: { help, ...flags }
+    } = parseArgs({ args, options: configureOptions });
     if (help) {
       console.log(configureHelpText());
       process.exit(0);

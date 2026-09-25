@@ -25,9 +25,13 @@ export const getBuffer = instructionString => Buffer.from(instructionString.spli
  * @param {string[]} response
  * @returns {string}
  */
-export const responseToString = response => response[0] === plus ?
-  response.slice(0, -2).map(hex => String.fromCharCode(parseInt(hex, 16))).join('') :
-  response.join(' ');
+export const responseToString = response =>
+  response[0] === plus
+    ? response
+        .slice(0, -2)
+        .map(hex => String.fromCharCode(parseInt(hex, 16)))
+        .join('')
+    : response.join(' ');
 
 /**
  * Builds the full instruction string (head, optional params, terminator).
@@ -35,9 +39,8 @@ export const responseToString = response => response[0] === plus ?
  * @param {string[]} params
  * @returns {string}
  */
-export const getInstruction = (head, params) => params.length ?
-  `${head} ${params.join(' ')} ${terminator}` :
-  `${head} ${terminator}`;
+export const getInstruction = (head, params) =>
+  params.length ? `${head} ${params.join(' ')} ${terminator}` : `${head} ${terminator}`;
 
 /**
  * Splits a hex string into uppercase two-digit byte strings, e.g. 'aabb' → ['AA', 'BB'].

@@ -1,6 +1,14 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateParams, getBuffer, responseToString, getInstruction, toHexBytes, appendChunk, isComplete } from '../protocol.js';
+import {
+  validateParams,
+  getBuffer,
+  responseToString,
+  getInstruction,
+  toHexBytes,
+  appendChunk,
+  isComplete
+} from '../protocol.js';
 
 describe('validateParams', () => {
   test('accepts two-digit hex bytes', () => {
@@ -18,7 +26,7 @@ describe('validateParams', () => {
 
 describe('getBuffer', () => {
   test('converts a space-separated hex string into a Buffer', () => {
-    assert.deepEqual(getBuffer('AB CD 0D 0A'), Buffer.from([0xAB, 0xCD, 0x0D, 0x0A]));
+    assert.deepEqual(getBuffer('AB CD 0D 0A'), Buffer.from([0xab, 0xcd, 0x0d, 0x0a]));
   });
 });
 
@@ -55,15 +63,15 @@ describe('toHexBytes', () => {
 
 describe('appendChunk + isComplete', () => {
   test('accumulates a multi-byte chunk and detects the terminator', () => {
-    const response = appendChunk([], Buffer.from([0x04, 0x00, 0x0D, 0x0A]));
+    const response = appendChunk([], Buffer.from([0x04, 0x00, 0x0d, 0x0a]));
     assert.deepEqual(response, ['04', '00', '0D', '0A']);
     assert.equal(isComplete(response), true);
   });
 
   test('is incomplete until a terminator split across chunks fully arrives', () => {
-    const partial = appendChunk([], Buffer.from([0x2B, 0x4F, 0x0D]));
+    const partial = appendChunk([], Buffer.from([0x2b, 0x4f, 0x0d]));
     assert.equal(isComplete(partial), false);
-    assert.equal(isComplete(appendChunk(partial, Buffer.from([0x0A]))), true);
+    assert.equal(isComplete(appendChunk(partial, Buffer.from([0x0a]))), true);
   });
 
   test('treats an empty response as incomplete', () => {

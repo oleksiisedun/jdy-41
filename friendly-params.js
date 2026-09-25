@@ -1,12 +1,12 @@
 import { toHexBytes } from './protocol.js';
 
 export const baudRates = {
-  '1200': '01',
-  '2400': '02',
-  '4800': '03',
-  '9600': '04',
-  '19200': '05',
-  '38400': '06'
+  1200: '01',
+  2400: '02',
+  4800: '03',
+  9600: '04',
+  19200: '05',
+  38400: '06'
 };
 
 export const powerLevels = {
@@ -22,7 +22,7 @@ export const powerLevels = {
 };
 
 export const modes = {
-  'transparent': 'A0',
+  transparent: 'A0',
   'remote-tx-led': 'C0',
   'remote-tx': 'C1',
   'remote-rx-sync': 'C2',
@@ -77,7 +77,8 @@ const lookup = (label, map, value) => {
  */
 export function resolveConfigureParams(flags) {
   const missing = requiredFlags.filter(key => !flags[key]);
-  if (missing.length) throw new Error(`Missing required flag(s): ${missing.map(f => `--${f}`).join(', ')}. Run with --help for usage.`);
+  if (missing.length)
+    throw new Error(`Missing required flag(s): ${missing.map(f => `--${f}`).join(', ')}. Run with --help for usage.`);
 
   const { baud, channel, power, mode, id, response } = flags;
   const baudHex = lookup('baud', baudRates, baud);
@@ -88,10 +89,12 @@ export function resolveConfigureParams(flags) {
   const channelHex = channelNumber.toString(16).padStart(2, '0').toUpperCase();
   const powerHex = lookup('power', powerLevels, power);
   const modeHex = lookup('mode', modes, mode);
-  if (!id || !wirelessIdRegex.test(id)) throw new Error(`Invalid wireless ID "${id}". Must be 8 hex digits, e.g. AABBCCDD.`);
+  if (!id || !wirelessIdRegex.test(id))
+    throw new Error(`Invalid wireless ID "${id}". Must be 8 hex digits, e.g. AABBCCDD.`);
   const idBytes = toHexBytes(id);
   const responseValue = response?.toLowerCase();
-  if (responseValue !== 'yes' && responseValue !== 'no') throw new Error(`Invalid response "${response}". Must be "yes" or "no".`);
+  if (responseValue !== 'yes' && responseValue !== 'no')
+    throw new Error(`Invalid response "${response}". Must be "yes" or "no".`);
   const responseHex = responseValue === 'yes' ? '01' : '00';
 
   return [baudHex, channelHex, powerHex, modeHex, ...idBytes, responseHex, '00'];

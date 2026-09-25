@@ -13,10 +13,7 @@ const validFlags = {
 
 describe('resolveConfigureParams', () => {
   test('resolves friendly flags into the hex byte array', () => {
-    assert.deepEqual(
-      resolveConfigureParams(validFlags),
-      ['04', '05', '04', 'A0', 'AA', 'BB', 'CC', 'DD', '00', '00']
-    );
+    assert.deepEqual(resolveConfigureParams(validFlags), ['04', '05', '04', 'A0', 'AA', 'BB', 'CC', 'DD', '00', '00']);
   });
 
   test('is case-insensitive for value flags', () => {
@@ -38,7 +35,11 @@ describe('resolveConfigureParams', () => {
   });
 
   test('encodes channel boundaries as zero-padded uppercase hex', () => {
-    const cases = [['0', '00'], ['10', '0A'], ['127', '7F']];
+    const cases = [
+      ['0', '00'],
+      ['10', '0A'],
+      ['127', '7F']
+    ];
     for (const [channel, hex] of cases) {
       assert.equal(resolveConfigureParams({ ...validFlags, channel })[1], hex);
     }
