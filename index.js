@@ -5,6 +5,7 @@ import { validateParams, getBuffer, responseToString, getInstruction, appendChun
 const maxAttempts = 20;
 const retryDelayMs = 100;
 const responseTimeoutMs = 5000;
+/** @type {Record<string, string>} */
 const heads = {
   'reset': 'AB E3',
   'read-device-id': 'F2 AD',
@@ -47,6 +48,7 @@ const parseCli = ([instruction, ...args]) => {
   return { instruction, params: args };
 };
 
+/** @type {{ instruction: string, params: string[] }} */
 let cli;
 try {
   cli = parseCli(process.argv.slice(2));
@@ -57,6 +59,7 @@ const { instruction, params } = cli;
 
 const port = await import('./port.js').then(module => module.default, exitWithError);
 
+/** @type {string[]} */
 let response = [];
 let settled = false;
 
@@ -98,9 +101,9 @@ const writeInstruction = (instruction, params, attempt = 1) => {
   }, retryDelayMs);
 };
 
-port.on('error', error => finish(`Serial port error: ${error.message}`, 1));
+port.on('error', (/** @type {Error} */ error) => finish(`Serial port error: ${error.message}`, 1));
 
-port.on('data', data => {
+port.on('data', (/** @type {Buffer} */ data) => {
   response = appendChunk(response, data);
   if (isComplete(response)) finish(responseToString(response));
 });

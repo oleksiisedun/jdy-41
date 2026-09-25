@@ -12,7 +12,7 @@ A minimalistic Node.js CLI for configuring the JDY-41 wireless serial module ove
 - Friendly configuration: `npm start configure -- --baud 9600 --channel 5 --power 0db --mode transparent --id AABBCCDD --response no` (see `npm start configure -- --help`). The `--` is required — without it, npm intercepts `--help` (and possibly other flags) itself instead of forwarding to the script.
 - Install: `npm i`
 - Lint: `npm run lint` (ESLint, flat config in `eslint.config.js`)
-- Typecheck: `npm run typecheck` (`tsc --checkJs` against the JSDoc types, no build output — `tsconfig.json`)
+- Typecheck: `npm run typecheck` (`tsc --checkJs` in `strict` mode against the JSDoc types, no build output — `tsconfig.json`)
 - Test: `npm test` (`node --test`, files under `tests/*.test.js`)
 - Aggregate check: `npm run check` (lint + typecheck + test) — run this before committing a logic change
 - No build step.

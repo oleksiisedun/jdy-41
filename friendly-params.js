@@ -64,7 +64,7 @@ export const configureOptions = {
  * @returns {string}
  */
 const lookup = (label, map, value) => {
-  const hex = map[value?.toLowerCase()];
+  const hex = value && map[value.toLowerCase()];
   if (!hex) throw new Error(`Invalid ${label} "${value}". Valid values: ${Object.keys(map).join(', ')}`);
   return hex;
 };
@@ -88,10 +88,10 @@ export function resolveConfigureParams(flags) {
   const channelHex = channelNumber.toString(16).padStart(2, '0').toUpperCase();
   const powerHex = lookup('power', powerLevels, power);
   const modeHex = lookup('mode', modes, mode);
-  if (!wirelessIdRegex.test(id)) throw new Error(`Invalid wireless ID "${id}". Must be 8 hex digits, e.g. AABBCCDD.`);
+  if (!id || !wirelessIdRegex.test(id)) throw new Error(`Invalid wireless ID "${id}". Must be 8 hex digits, e.g. AABBCCDD.`);
   const idBytes = toHexBytes(id);
   const responseValue = response?.toLowerCase();
-  if (!['yes', 'no'].includes(responseValue)) throw new Error(`Invalid response "${response}". Must be "yes" or "no".`);
+  if (responseValue !== 'yes' && responseValue !== 'no') throw new Error(`Invalid response "${response}". Must be "yes" or "no".`);
   const responseHex = responseValue === 'yes' ? '01' : '00';
 
   return [baudHex, channelHex, powerHex, modeHex, ...idBytes, responseHex, '00'];
