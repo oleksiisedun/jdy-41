@@ -20,10 +20,10 @@ Configuration of <a href="./docs/jdy-41-manual.pdf">JDY-41</a> may be pretty cha
 
 ```mermaid
 graph TD
-  CLI["index.js\n(CLI + orchestration)"] -->|open/write| Port["port.js\n(auto-detect + SerialPort)"]
+  CLI["index.js\n(CLI + orchestration)"] -->|"open/write"| Port["port.js\n(auto-detect + SerialPort)"]
   CLI -->|configure flags| Friendly["friendly-params.js\n(lookup tables + validation)"]
   Friendly -->|hex params| CLI
-  CLI -->|build/decode| Protocol["protocol.js\n(pure wire-format helpers)"]
+  CLI -->|"build/decode"| Protocol["protocol.js\n(pure wire-format helpers)"]
   Port --> Device[("JDY-41 module")]
   Device -->|data events| CLI
   CLI -->|no response in 100ms| CLI
@@ -36,8 +36,8 @@ graph TD
 - `read-parameters`
 - `configure-parameters` — raw hex params, see the [manual](./docs/jdy-41-manual.pdf) for the byte format
 - `configure` — friendly flags, see [Configuring the module](#configuring-the-module) below
-- `configure-device-id`
-- `send-address-message`
+- `configure-device-id` — 4-byte device ID, e.g. `11 22 33 44` (`00 00 00 00` restores the factory ID)
+- `send-address-message` — 4-byte target device ID (`FF FF FF FF` broadcasts to all) followed by the data bytes, e.g. `11 11 22 22 55 66 77 88`
 
 ## Features
 - Automatic USB serial port detection.

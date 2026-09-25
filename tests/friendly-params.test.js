@@ -37,6 +37,13 @@ describe('resolveConfigureParams', () => {
     assert.throws(() => resolveConfigureParams({ ...validFlags, channel: '128' }), /Invalid channel/);
   });
 
+  test('encodes channel boundaries as zero-padded uppercase hex', () => {
+    const cases = [['0', '00'], ['10', '0A'], ['127', '7F']];
+    for (const [channel, hex] of cases) {
+      assert.equal(resolveConfigureParams({ ...validFlags, channel })[1], hex);
+    }
+  });
+
   test('rejects a non-integer channel', () => {
     assert.throws(() => resolveConfigureParams({ ...validFlags, channel: 'five' }), /Invalid channel/);
   });

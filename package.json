@@ -1,7 +1,7 @@
 {
   "name": "jdy-41",
   "version": "1.0.0",
-  "description": "",
+  "description": "Minimalistic CLI for configuring the JDY-41 wireless serial module over USB-serial",
   "main": "index.js",
   "type": "module",
   "engines": {
